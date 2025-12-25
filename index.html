@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校務系統選單 - 學生/教職員/教師 三版本對照</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* 計中展示版浮水印 */
+        .demo-watermark {
+            position: fixed;
+            top: 18px;
+            left: 180px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            letter-spacing: 2px;
+            z-index: 1001;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Role Toggle - 身分切換（三個選項）*/
+        .role-toggle {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 25px;
+            padding: 4px;
+        }
+
+        .role-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .role-btn.active {
+            background: white;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+
+        .role-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .role-btn.student.active {
+            background: #48bb78;
+            color: white;
+        }
+
+        .role-btn.staff.active {
+            background: #ed8936;
+            color: white;
+        }
+
+        .role-btn.teacher.active {
+            background: #805ad5;
+            color: white;
+        }
+
+        /* Current Role Indicator */
+        .current-role {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-role.student { background: rgba(72, 187, 120, 0.3); }
+        .current-role.staff { background: rgba(237, 137, 54, 0.3); }
+        .current-role.teacher { background: rgba(128, 90, 213, 0.3); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0 30px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            font-size: 15px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #f7fafc;
+        }
+
+        .tab.active {
+            border-bottom-color: #3182ce;
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        /* Menu Level 1 */
+        .menu-level1 {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .menu-level1-header {
+            padding: 12px 15px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .menu-level1-header:hover {
+            background: #f7fafc;
+        }
+
+        .menu-level1-header.student {
+            border-left: 4px solid #48bb78;
+            background: #f0fff4;
+        }
+
+        .menu-level1-header.staff {
+            border-left: 4px solid #ed8936;
+            background: #fffaf0;
+        }
+
+        .menu-level1-header.teacher {
+            border-left: 4px solid #805ad5;
+            background: #faf5ff;
+        }
+
+        .menu-level1-header .arrow {
+            transition: transform 0.2s;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .menu-level1-header.expanded .arrow {
+            transform: rotate(90deg);
+        }
+
+        .menu-level1-content {
+            display: none;
+            background: #fafafa;
+        }
+
+        .menu-level1-content.expanded {
+            display: block;
+        }
+
+        /* Menu Level 2 */
+        .menu-level2 {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .menu-level2-header {
+            padding: 10px 15px 10px 25px;
+            font-size: 13px;
+            color: #4a5568;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .menu-level2-header:hover {
+            background: #edf2f7;
+        }
+
+        .menu-level2-header .arrow {
+            transition: transform 0.2s;
+            font-size: 10px;
+        }
+
+        .menu-level2-header.expanded .arrow {
+            transform: rotate(90deg);
+        }
+
+        .menu-level2-content {
+            display: none;
+            background: white;
+        }
+
+        .menu-level2-content.expanded {
+            display: block;
+        }
+
+        /* Menu Level 3 - Items */
+        .menu-item {
+            padding: 8px 15px 8px 40px;
+            font-size: 12px;
+            color: #555;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #ebf8ff;
+            color: #2b6cb0;
+        }
+
+        /* Usage Badges */
+        .usage-hot {
+            background: #fed7d7;
+            color: #c53030;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .usage-warm {
+            background: #feebc8;
+            color: #c05621;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .usage-normal {
+            background: #e2e8f0;
+            color: #4a5568;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        /* Teacher-specific badge */
+        .badge-teacher-only {
+            background: #e9d8fd;
+            color: #553c9a;
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            height: calc(100vh - 120px);
+        }
+
+        .content-area h2 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .stats-section.student {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .stats-section.staff {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+
+        .stats-section.teacher {
+            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+        }
+
+        .stats-section h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-item .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Role Summary Cards */
+        .role-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .role-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .role-card h4 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-card.student h4 {
+            color: #38a169;
+            border-bottom-color: #c6f6d5;
+        }
+
+        .role-card.staff h4 {
+            color: #dd6b20;
+            border-bottom-color: #feebc8;
+        }
+
+        .role-card.teacher h4 {
+            color: #805ad5;
+            border-bottom-color: #e9d8fd;
+        }
+
+        .role-stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f7fafc;
+            font-size: 14px;
+        }
+
+        .role-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        /* Top Functions */
+        .top-functions {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .top-functions h3 {
+            margin-bottom: 15px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .function-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .function-row:last-child {
+            border-bottom: none;
+        }
+
+        .function-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 12px;
+        }
+
+        .function-rank.gold { background: #ffd700; color: #744210; }
+        .function-rank.silver { background: #c0c0c0; color: #4a5568; }
+        .function-rank.bronze { background: #cd7f32; color: white; }
+        .function-rank.normal { background: #e2e8f0; color: #4a5568; }
+
+        .function-name {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .function-count {
+            font-size: 12px;
+            color: #718096;
+            margin-right: 10px;
+        }
+
+        .function-bar {
+            width: 80px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .function-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .function-bar-fill.student {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+
+        .function-bar-fill.staff {
+            background: linear-gradient(90deg, #ed8936, #dd6b20);
+        }
+
+        .function-bar-fill.teacher {
+            background: linear-gradient(90deg, #805ad5, #6b46c1);
+        }
+
+        /* Comparison View */
+        .comparison-view {
+            display: none;
+            padding: 30px;
+        }
+
+        .comparison-view.active {
+            display: block;
+        }
+
+        .comparison-table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .comparison-table th.student-header {
+            background: #48bb78;
+            color: white;
+        }
+
+        .comparison-table th.staff-header {
+            background: #ed8936;
+            color: white;
+        }
+
+        .comparison-table th.teacher-header {
+            background: #805ad5;
+            color: white;
+        }
+
+        .comparison-table th.shared-header {
+            background: #4a5568;
+            color: white;
+        }
+
+        .comparison-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        .comparison-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .badge-student {
+            background: #c6f6d5;
+            color: #276749;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-staff {
+            background: #feebc8;
+            color: #c05621;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-teacher {
+            background: #e9d8fd;
+            color: #553c9a;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-shared {
+            background: #e2e8f0;
+            color: #4a5568;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Difference highlight */
+        .diff-highlight {
+            background: #faf5ff;
+            border-left: 3px solid #805ad5;
+            padding: 2px 5px;
+            margin: 2px 0;
+            font-size: 11px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-box.warning {
+            background: #faf5ff;
+            border-left-color: #805ad5;
+        }
+
+        .info-box h4 {
+            color: #2b6cb0;
+            margin-bottom: 8px;
+        }
+
+        .info-box.warning h4 {
+            color: #553c9a;
+        }
+
+        .info-box p, .info-box ul {
+            color: #2c5282;
+            font-size: 13px;
+        }
+
+        .info-box.warning p, .info-box.warning ul {
+            color: #44337a;
+        }
+
+        .info-box ul {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        /* Quick Actions Grid */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
+
+        .action-card .icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .action-card.student .icon { background: #c6f6d5; color: #276749; }
+        .action-card.staff .icon { background: #feebc8; color: #c05621; }
+        .action-card.teacher .icon { background: #e9d8fd; color: #553c9a; }
+
+        .action-card h4 {
+            font-size: 14px;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .action-card p {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .action-card .rank-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            color: white;
+        }
+
+        .action-card.student .rank-badge { background: #38a169; }
+        .action-card.staff .rank-badge { background: #dd6b20; }
+        .action-card.teacher .rank-badge { background: #805ad5; }
+
+        /* Teacher Extra Functions Box */
+        .teacher-extra-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border: 2px solid #d6bcfa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .teacher-extra-box h4 {
+            color: #553c9a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .teacher-extra-category {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #805ad5;
+        }
+
+        .teacher-extra-category h5 {
+            color: #805ad5;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .teacher-extra-category ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .teacher-extra-category li {
+            padding: 5px 0;
+            font-size: 13px;
+            color: #4a5568;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .teacher-extra-category li:last-child {
+            border-bottom: none;
+        }
+
+        /* Hidden content */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 計中展示版浮水印 -->
+    <div class="demo-watermark">計中展示版</div>
+
+    <div class="header">
+        <h1>臺北市立大學 校務系統</h1>
+        <div class="header-controls">
+            <div class="role-toggle">
+                <button class="role-btn student active" onclick="switchRole('student')">🎓 學生</button>
+                <button class="role-btn staff" onclick="switchRole('staff')">👔 職員</button>
+                <button class="role-btn teacher" onclick="switchRole('teacher')">👨‍🏫 教師</button>
+            </div>
+            <div class="current-role student" id="currentRole">
+                <span id="roleIcon">🎓</span>
+                <span id="roleName">學生 OOO (U1110****)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('preview')">👁️ 選單預覽</div>
+        <div class="tab" onclick="switchTab('comparison')">🔄 三版本對照</div>
+        <div class="tab" onclick="switchTab('teacher-diff')">🎓 教師專屬功能</div>
+        <div class="tab" onclick="switchTab('stats')">📊 我的最愛統計</div>
+    </div>
+
+    <!-- Preview View -->
+    <div class="main-container" id="previewView">
+        <div class="sidebar" id="menuSidebar">
+            <!-- Menu will be rendered here -->
+        </div>
+        <div class="content-area">
+            <h2 id="contentTitle">
+                <span id="titleIcon">🎓</span>
+                <span id="titleText">學生選單結構</span>
+            </h2>
+
+            <div class="stats-section student" id="statsHeader">
+                <h3>📊 選單統計摘要</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="number" id="statCategories">13</div>
+                        <div class="label">主類別</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="statSubcategories">25</div>
+                        <div class="label">子類別</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="statFunctions">85</div>
+                        <div class="label">功能項</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="statLevels">3</div>
+                        <div class="label">層級深度</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top-functions">
+                <h3 id="topFunctionsTitle">🔥 熱門功能 Top 8（依我的最愛統計）</h3>
+                <div class="quick-actions" id="quickActionsGrid">
+                    <!-- Quick actions will be rendered here -->
+                </div>
+            </div>
+
+            <div class="top-functions">
+                <h3>📈 完整排行榜 Top 10</h3>
+                <div id="topFunctionsList">
+                    <!-- Rankings will be rendered here -->
+                </div>
+            </div>
+
+            <div class="info-box" id="infoBox">
+                <h4>💡 選單特色說明</h4>
+                <ul id="infoList">
+                    <!-- Info will be rendered here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison View -->
+    <div class="comparison-view" id="comparisonView">
+        <h2>🔄 學生 vs 職員 vs 教師 選單對照</h2>
+
+        <div class="role-summary">
+            <div class="role-card student">
+                <h4>🎓 學生選單</h4>
+                <div class="role-stat-row">
+                    <span>主類別數</span>
+                    <span><strong>13</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>總功能數</span>
+                    <span><strong>~85</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>專屬類別</span>
+                    <span><strong>2</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>身分代碼</span>
+                    <span><strong>02</strong></span>
+                </div>
+            </div>
+            <div class="role-card staff">
+                <h4>👔 職員選單</h4>
+                <div class="role-stat-row">
+                    <span>主類別數</span>
+                    <span><strong>17</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>總功能數</span>
+                    <span><strong>~75</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>專屬類別</span>
+                    <span><strong>6</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>身分代碼</span>
+                    <span><strong>01</strong></span>
+                </div>
+            </div>
+            <div class="role-card teacher">
+                <h4>👨‍🏫 教師選單</h4>
+                <div class="role-stat-row">
+                    <span>主類別數</span>
+                    <span><strong>17</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>總功能數</span>
+                    <span><strong>~95</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>額外功能</span>
+                    <span><strong>+20</strong> 個</span>
+                </div>
+                <div class="role-stat-row">
+                    <span>身分代碼</span>
+                    <span><strong>01+1A+1B</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box warning" style="margin-bottom: 20px;">
+            <h4>📐 身分權限架構</h4>
+            <p><strong>教師帳號 = 職員基本權限 + 授課教師(1A) + 導師(1B) + 主管權限(若有)</strong></p>
+            <p style="margin-top: 10px;">教師選單是職員選單的「超集(superset)」，包含所有職員功能再加上教學、導師、主管相關功能。</p>
+        </div>
+
+        <div class="comparison-table-container">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th class="shared-header">類別</th>
+                        <th class="student-header">🎓 學生</th>
+                        <th class="staff-header">👔 職員</th>
+                        <th class="teacher-header">👨‍🏫 教師</th>
+                        <th class="shared-header">差異說明</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonBody">
+                    <!-- Comparison rows will be rendered here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Teacher Difference View -->
+    <div class="comparison-view" id="teacherDiffView">
+        <h2>🎓 教師專屬功能分析（與職員比較）</h2>
+
+        <div class="info-box warning" style="margin-bottom: 20px;">
+            <h4>⚠️ 重要發現：教師選單 ≠ 職員選單</h4>
+            <ul>
+                <li><strong>教師選單</strong>是職員選單的<strong>超集(superset)</strong></li>
+                <li>教師帳號同時擁有多重身分：職員(01) + 授課教師(1A) + 導師(1B)</li>
+                <li>額外約 <strong>20 個</strong>教師專屬功能</li>
+            </ul>
+        </div>
+
+        <div class="teacher-extra-box">
+            <h4>🟣 教師相對於職員的額外功能</h4>
+
+            <div class="teacher-extra-category">
+                <h5>📚 授課教師功能 (sts_id = 1A)</h5>
+                <ul>
+                    <li>📋 課程大綱輸入作業（預設我的最愛）</li>
+                    <li>✏️ 學期成績輸入作業（預設我的最愛）</li>
+                    <li>📝 授課老師網路點名作業（預設我的最愛）</li>
+                    <li>🔍 開課選課資料查詢(含點名單)</li>
+                    <li>⚠️ 學生學習預警</li>
+                </ul>
+            </div>
+
+            <div class="teacher-extra-category">
+                <h5>👨‍🏫 導師功能 (sts_id = 1B)</h5>
+                <ul>
+                    <li>📋 班級學生學籍查詢</li>
+                    <li>🏆 班級幹部當選人名單登錄</li>
+                    <li>📝 導師個別輔導紀錄登錄</li>
+                    <li>👥 導師團體輔導登錄作業</li>
+                    <li>⭐ 導師操行成績登錄作業</li>
+                    <li>📊 學務資訊查詢（導師相關）</li>
+                </ul>
+            </div>
+
+            <div class="teacher-extra-category">
+                <h5>👔 主管查詢功能（若有主管身分）</h5>
+                <ul>
+                    <li>📊 一級主管出勤查詢</li>
+                    <li>🏢 全校員工出勤查詢</li>
+                    <li>⏰ 主管查詢單位同仁刷卡記錄</li>
+                    <li>📅 主管查詢單位同仁請假記錄</li>
+                </ul>
+            </div>
+
+            <div class="teacher-extra-category">
+                <h5>⭐ 預設我的最愛（教師版獨有）</h5>
+                <ul>
+                    <li>課程大綱輸入作業</li>
+                    <li>學期成績輸入作業</li>
+                    <li>授課老師網路點名作業</li>
+                    <li>導師操行成績登錄作業</li>
+                    <li>導師個別輔導紀錄登錄</li>
+                    <li>導師團體輔導登錄作業</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="top-functions">
+            <h3>📊 教師 vs 職員 功能數量比較</h3>
+            <table class="comparison-table" style="margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th class="shared-header">類別</th>
+                        <th class="staff-header">👔 職員</th>
+                        <th class="teacher-header">👨‍🏫 教師</th>
+                        <th class="shared-header">差異</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>我的最愛</strong></td>
+                        <td>空白</td>
+                        <td>6項預設</td>
+                        <td><span class="badge-teacher">+6 預設項目</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>查詢 > 教務資訊</strong></td>
+                        <td>11 項</td>
+                        <td>14 項</td>
+                        <td><span class="badge-teacher">+3 項</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>查詢 > 學務資訊</strong></td>
+                        <td>0 項</td>
+                        <td>導師相關功能</td>
+                        <td><span class="badge-teacher">新增類別</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>登錄 > 學務登錄</strong></td>
+                        <td>2 項</td>
+                        <td>7 項</td>
+                        <td><span class="badge-teacher">+5 項</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>登錄 > 教務資訊</strong></td>
+                        <td>3 項</td>
+                        <td>4 項</td>
+                        <td><span class="badge-teacher">+1 項</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>人事系統 > 差勤查詢</strong></td>
+                        <td>1 項</td>
+                        <td>5 項</td>
+                        <td><span class="badge-teacher">+4 主管功能</span></td>
+                    </tr>
+                    <tr style="background: #faf5ff;">
+                        <td><strong>總計</strong></td>
+                        <td><strong>~75 項</strong></td>
+                        <td><strong>~95 項</strong></td>
+                        <td><span class="badge-teacher"><strong>+20 項</strong></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Stats View -->
+    <div class="comparison-view" id="statsView">
+        <h2 id="statsViewTitle">📊 我的最愛統計分析</h2>
+
+        <div class="role-summary">
+            <div class="role-card student">
+                <h4>🎓 學生熱門功能</h4>
+                <div id="studentTopList">
+                    <!-- Student top functions -->
+                </div>
+            </div>
+            <div class="role-card staff">
+                <h4>👔 職員熱門功能</h4>
+                <div id="staffTopList">
+                    <!-- Staff top functions -->
+                </div>
+            </div>
+            <div class="role-card teacher">
+                <h4>👨‍🏫 教師熱門功能</h4>
+                <div id="teacherTopList">
+                    <!-- Teacher top functions -->
+                </div>
+            </div>
+        </div>
+
+        <div class="top-functions">
+            <h3>🏆 全體使用者熱門功能排行榜</h3>
+            <div id="overallRankingList">
+                <!-- Overall rankings -->
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h4>📈 統計洞察</h4>
+            <ul>
+                <li><strong>資料來源：</strong>s90_auth_favorite 資料表（7,071 筆收藏記錄）</li>
+                <li><strong>涵蓋功能：</strong>151 個功能被收藏（共 288 個功能，使用率 52%）</li>
+                <li><strong>學生 vs 教職員：</strong>學生較常用選課、成績查詢；教職員較常用簽核、成績登錄</li>
+                <li><strong>教師特色：</strong>成績登錄、點名作業、課程大綱使用率最高</li>
+                <li><strong>建議：</strong>新版選單應依身分顯示不同的快捷功能</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Current role state
+        let currentRole = 'student';
+
+        // 學生選單結構
+        const studentMenuStructure = [
+            {
+                name: "我的最愛",
+                children: [{ name: "編輯我的最愛", items: [] }]
+            },
+            {
+                name: "學生EP (學生學習歷程)",
+                children: [
+                    { name: "個人履歷編輯(含EP填報)", items: [
+                        "學生學習歷程資料匯入(限直升學生使用)", "個人基本資料", "學經歷",
+                        "自傳", "活動紀錄", "獲獎紀錄", "證照紀錄", "師長推薦函", "工作經歷", "社團幹部"
+                    ]},
+                    { name: "修課歷程記錄", items: ["修課紀錄", "成績紀錄"] },
+                    { name: "履歷製作設定與列印", items: ["履歷製作設定與列印"] }
+                ]
+            },
+            {
+                name: "選課作業",
+                children: [
+                    { name: "網路選課", items: [
+                        { name: "師培學程課程加退選", fncId: "00B01" },
+                        { name: "雙主修課程加退選", fncId: "00B02" },
+                        { name: "輔系課程加退選", fncId: "00B03" },
+                        { name: "學分學程加退選", fncId: "00B04" },
+                        { name: "一般線上加退選", fncId: "0A000" },
+                        "選課結果查詢"
+                    ]},
+                    { name: "師培預選", items: [{ name: "師培學程課程預選", fncId: "00B05" }] },
+                    { name: "志願選課", items: ["通識體育志願選課", "志願選課結果查詢"] }
+                ]
+            },
+            {
+                name: "系統公告與下載",
+                children: [
+                    { name: "行事曆", items: ["行事曆查詢列印作業"] }
+                ]
+            },
+            {
+                name: "查詢",
+                children: [
+                    { name: "教務資訊查詢", items: [
+                        { name: "學生歷年成績查詢", fncId: "AG102" },
+                        { name: "科目與教師開課資料查詢", fncId: "AG203" },
+                        { name: "我的課表", fncId: "AG222" },
+                        { name: "在學證明", fncId: "AG225" },
+                        { name: "教師課表查詢", fncId: "AG300" },
+                        { name: "教室課表查詢", fncId: "AG302" },
+                        { name: "系所班級課表查詢", fncId: "AG304" },
+                        { name: "期中預警查詢", fncId: "AG305" },
+                        { name: "畢業審核結果查詢", fncId: "AG650" },
+                        "畢業審核結果查詢_1", "學生就學記錄", "離校審核查詢"
+                    ]},
+                    { name: "學務資訊查詢", items: [
+                        { name: "學生個人缺曠請假明細表", fncId: "AK002" },
+                        "學生個人獎懲狀況明細表", "學生宿舍申請查詢",
+                        "弱勢助學金申辦結果查詢", "校內(外)獎學金申請結果查詢",
+                        "就學貸款申請結果查詢", "優待減免申請結果查詢"
+                    ]}
+                ]
+            },
+            {
+                name: "登錄",
+                children: [
+                    { name: "教務資訊登錄", items: [
+                        "學籍基本資料維護", "學生照片上傳/查詢作業", "學生抵免申請",
+                        "課程停修申請作業", "學生證線上掛失暨申請補發作業", "畢業離校申請", "成績優良獎勵登錄"
+                    ]},
+                    { name: "學務登錄作業", items: [
+                        "社團成員登錄作業", "工讀學經歷輸入作業", "參與競賽輸入作業",
+                        "校外租屋資料登錄", "問卷調查", "工讀助學服務學習登錄"
+                    ]},
+                    { name: "師培資訊登錄", items: [
+                        "師培抵免申請", "教程課程登錄實地學習時數(教師)", "師培自審作業",
+                        "放棄師資生申請作業", "師資生實地學習時數登錄作業(學生)", "卓獎生續獎審查作業", "教師檢定模擬測驗作業"
+                    ]},
+                    { name: "其它資訊登錄", items: ["教學評量登錄作業", "學生流向追蹤問卷調查"] }
+                ]
+            },
+            {
+                name: "申請",
+                children: [
+                    { name: "通識資訊申請", items: ["英文証照抵免課程申請", "國文會考申請"] },
+                    { name: "學務資訊申請", items: [
+                        "工讀單位查詢", "工讀助學約(進)用申請作業", "就學貸款申請",
+                        "大專弱勢學生助學補助申請", "營養諮詢預約申請", "諮商服務預約申請",
+                        "社團活動申請作業", "校內獎學金", "校外獎學金", "學生宿舍申請",
+                        "學生宿舍組寢群組申請", "新生宿舍申請", "優待減免申請作業", "學生宿舍幹部選舉"
+                    ]},
+                    { name: "師培資訊申請", items: ["教程甄試報名", "卓獎生報名申請作業"] },
+                    { name: "國際交流申請", items: ["交換出國申請作業"] }
+                ]
+            },
+            {
+                name: "薪資系統",
+                children: [
+                    { name: "薪資明細查詢", items: [{ name: "劃撥入帳查詢", fncId: "ZGB204" }] }
+                ]
+            },
+            {
+                name: "出納系統",
+                children: [
+                    { name: "繳費查詢", items: [
+                        { name: "繳費單列印作業", fncId: "ZGC204" },
+                        "繳費證明單列印作業", "學生修課收費一覽表"
+                    ]}
+                ]
+            },
+            {
+                name: "研討會系統",
+                children: [
+                    { name: "研討會報名管理", items: ["活動公告訊息檢視", "活動資訊查詢及報名", "活動報名修改取消及查詢"] }
+                ]
+            },
+            {
+                name: "總務系統",
+                children: [
+                    { name: "器材借用管理", items: ["體育器材借用申請作業"] }
+                ]
+            },
+            {
+                name: "助理約(進)用管理系統",
+                children: [
+                    { name: "登錄", items: [{ name: "應聘人員確認作業", fncId: "UAA002_1" }] }
+                ]
+            },
+            {
+                name: "投票與滿意度調查系統",
+                children: [
+                    { name: "投票與滿意度", items: ["餐廳滿意度填寫作業", "票選活動報名作業", "投票作業"] }
+                ]
+            }
+        ];
+
+        // 職員選單結構（基礎版）
+        const staffMenuStructure = [
+            {
+                name: "我的最愛",
+                children: [{ name: "編輯我的最愛", items: [] }]
+            },
+            {
+                name: "系統公告與下載",
+                children: [
+                    { name: "操作手冊", items: ["教職員工--手冊下載"] },
+                    { name: "行事曆", items: ["行事曆查詢列印作業"] }
+                ]
+            },
+            {
+                name: "訊息平台",
+                children: [
+                    { name: "訊息平台系統", items: ["使用者權限設定", "通告訊息申請作業", "通告申請簽核作業"] }
+                ]
+            },
+            {
+                name: "查詢",
+                children: [
+                    { name: "教務資訊查詢", items: [
+                        "教學評量結果查詢", "教學評量即時填答率查詢",
+                        { name: "科目與教師開課資料查詢", fncId: "AG203" },
+                        "學生學習預警查詢(導師用)", "畢業資格預審表查詢",
+                        { name: "教師課表查詢", fncId: "AG300" },
+                        { name: "教室課表查詢", fncId: "AG302" },
+                        { name: "系所班級課表查詢", fncId: "AG304" },
+                        "專長教師授課班級缺曠統計查詢", "教師授課班級點名記錄查詢", "賴氏人格測驗結果查詢"
+                    ]}
+                ]
+            },
+            {
+                name: "登錄",
+                children: [
+                    { name: "教務資訊登錄", items: [
+                        "課程大綱輸入作業",
+                        { name: "學期成績輸入作業", fncId: "KP2A2" },
+                        "代表隊成績輸入作業"
+                    ]},
+                    { name: "學務登錄作業", items: ["問卷調查", "學生獎懲建議表登錄"] },
+                    { name: "師培資訊登錄", items: ["教程課程登錄實地學習時數(教師)", "師培抵免審核作業"] },
+                    { name: "通識資訊登錄", items: ["通識課程精進系統"] },
+                    { name: "人事資訊登錄", items: ["人事基本資料維護作業"] }
+                ]
+            },
+            {
+                name: "申請",
+                children: [
+                    { name: "學務資訊申請", items: ["營養諮詢預約申請", "跨班公假申請作業"] }
+                ]
+            },
+            {
+                name: "教師e-Portfolio",
+                children: [
+                    { name: "EPortfolio呈現設定", items: ["教師個人資料維護", "EP檢視權限設定", "個人CV預覽"] }
+                ]
+            },
+            {
+                name: "教師評鑑系統",
+                children: [
+                    { name: "教師評鑑", items: ["教師評鑑評分表", "教師評鑑審查", "教師評鑑資料查詢"] }
+                ]
+            },
+            {
+                name: "薪資系統",
+                children: [
+                    { name: "薪資明細查詢", items: [
+                        { name: "薪資所得查詢作業", fncId: "ZGB204" },
+                        "鐘點費查詢",
+                        { name: "扣繳憑單查詢", fncId: "ZGC205" },
+                        "扣繳明細年報表",
+                        { name: "劃撥入帳查詢", fncId: "ZGD001" }
+                    ]}
+                ]
+            },
+            {
+                name: "出納系統",
+                children: [
+                    { name: "繳費查詢", items: ["繳費證明單列印作業"] },
+                    { name: "印領清冊", items: ["印領清冊造冊作業"] }
+                ]
+            },
+            {
+                name: "人事系統",
+                children: [
+                    { name: "填寫新表單", items: [] },
+                    { name: "系統公告", items: [] },
+                    { name: "差勤查詢", items: ["刷卡記錄查詢作業"] },
+                    { name: "待辦作業", items: [
+                        "教師升等推薦作業",
+                        { name: "簽核作業(0)", fncId: "0A000" }
+                    ]}
+                ]
+            },
+            {
+                name: "研討會系統",
+                children: [
+                    { name: "研討會報名管理", items: ["活動公告訊息檢視", "活動資訊查詢及報名", "活動報名修改取消及查詢"] }
+                ]
+            },
+            {
+                name: "總務系統",
+                children: [
+                    { name: "器材借用管理", items: ["體育器材借用申請作業"] },
+                    { name: "財產管理", items: ["財物查詢", "財產增加作業", "財物移轉作業", "財產減損作業"] },
+                    { name: "修繕系統", items: ["報修申請及查詢作業"] },
+                    { name: "公務車管理系統", items: ["公務車管理系統(測試中)"] },
+                    { name: "場地借用管理", items: [
+                        "03.繳費單查詢列印作業", "04.場地使用狀況表", "05.場地使用一覽表",
+                        "01.場地借用申請(取消)作業", "02.場地借用簽核作業"
+                    ]},
+                    { name: "消耗品管理系統", items: ["消耗品請領作業"] },
+                    { name: "簽核作業系統", items: [
+                        { name: "簽核作業", fncId: "SIGN001" },
+                        { name: "歷史簽核查詢", fncId: "0A003" },
+                        "代理人作業",
+                        { name: "電子表單簽核作業", fncId: "0F001" }
+                    ]},
+                    { name: "電子表單", items: ["臨時停車證申請", "計中財物借用表單", "計中場地借用單", "計中財物歸還單", "查詢作業"] }
+                ]
+            },
+            {
+                name: "助理約(進)用管理系統",
+                children: [
+                    { name: "登錄", items: [
+                        "計畫登錄作業",
+                        { name: "計畫助理約(進)用登錄作業", fncId: "UAA002" },
+                        { name: "應聘人員確認作業", fncId: "UAA002_1" }
+                    ]}
+                ]
+            },
+            {
+                name: "投票與滿意度調查系統",
+                children: [
+                    { name: "投票與滿意度", items: ["餐廳滿意度填寫作業", "票選活動報名作業", "投票作業"] }
+                ]
+            }
+        ];
+
+        // 教師選單結構（職員 + 教師專屬功能）
+        const teacherMenuStructure = [
+            {
+                name: "我的最愛",
+                teacherOnly: true,
+                children: [{
+                    name: "編輯我的最愛",
+                    items: [
+                        { name: "課程大綱輸入作業", teacherDefault: true },
+                        { name: "學期成績輸入作業", teacherDefault: true },
+                        { name: "授課老師網路點名作業", teacherDefault: true },
+                        { name: "導師操行成績登錄作業", teacherDefault: true },
+                        { name: "導師個別輔導紀錄登錄", teacherDefault: true },
+                        { name: "導師團體輔導登錄作業", teacherDefault: true }
+                    ]
+                }]
+            },
+            {
+                name: "系統公告與下載",
+                children: [
+                    { name: "操作手冊", items: ["教職員工--手冊下載"] },
+                    { name: "行事曆", items: ["行事曆查詢列印作業"] }
+                ]
+            },
+            {
+                name: "訊息平台",
+                children: [
+                    { name: "訊息平台系統", items: ["使用者權限設定", "通告訊息申請作業", "通告申請簽核作業"] }
+                ]
+            },
+            {
+                name: "查詢",
+                children: [
+                    { name: "教務資訊查詢", items: [
+                        "教學評量結果查詢", "教學評量即時填答率查詢",
+                        { name: "科目與教師開課資料查詢", fncId: "AG203" },
+                        "學生學習預警查詢(導師用)", "畢業資格預審表查詢",
+                        { name: "教師課表查詢", fncId: "AG300" },
+                        { name: "教室課表查詢", fncId: "AG302" },
+                        { name: "系所班級課表查詢", fncId: "AG304" },
+                        "專長教師授課班級缺曠統計查詢", "教師授課班級點名記錄查詢", "賴氏人格測驗結果查詢",
+                        { name: "班級學生學籍查詢", teacherOnly: true },
+                        { name: "開課選課資料查詢(含點名單)", teacherOnly: true }
+                    ]},
+                    { name: "學務資訊查詢", teacherOnly: true, items: [
+                        { name: "導師班級獎懲查詢", teacherOnly: true },
+                        { name: "導師班級缺曠查詢", teacherOnly: true },
+                        { name: "導師輔導紀錄查詢", teacherOnly: true }
+                    ]}
+                ]
+            },
+            {
+                name: "登錄",
+                children: [
+                    { name: "教務資訊登錄", items: [
+                        "課程大綱輸入作業",
+                        { name: "學期成績輸入作業", fncId: "KP2A2" },
+                        "代表隊成績輸入作業",
+                        { name: "學生學習預警", teacherOnly: true }
+                    ]},
+                    { name: "學務登錄作業", items: [
+                        "問卷調查", "學生獎懲建議表登錄",
+                        { name: "班級幹部當選人名單登錄", teacherOnly: true },
+                        { name: "授課老師網路點名作業", teacherOnly: true },
+                        { name: "導師個別輔導紀錄登錄", teacherOnly: true },
+                        { name: "導師團體輔導登錄作業", teacherOnly: true },
+                        { name: "導師操行成績登錄作業", teacherOnly: true }
+                    ]},
+                    { name: "師培資訊登錄", items: ["教程課程登錄實地學習時數(教師)", "師培抵免審核作業"] },
+                    { name: "通識資訊登錄", items: ["通識課程精進系統"] },
+                    { name: "人事資訊登錄", items: ["人事基本資料維護作業"] }
+                ]
+            },
+            {
+                name: "申請",
+                children: [
+                    { name: "學務資訊申請", items: ["營養諮詢預約申請", "跨班公假申請作業"] }
+                ]
+            },
+            {
+                name: "教師e-Portfolio",
+                children: [
+                    { name: "EPortfolio呈現設定", items: ["教師個人資料維護", "EP檢視權限設定", "個人CV預覽"] }
+                ]
+            },
+            {
+                name: "教師評鑑系統",
+                children: [
+                    { name: "教師評鑑", items: ["教師評鑑評分表", "教師評鑑審查", "教師評鑑資料查詢"] }
+                ]
+            },
+            {
+                name: "薪資系統",
+                children: [
+                    { name: "薪資明細查詢", items: [
+                        { name: "薪資所得查詢作業", fncId: "ZGB204" },
+                        "鐘點費查詢",
+                        { name: "扣繳憑單查詢", fncId: "ZGC205" },
+                        "扣繳明細年報表",
+                        { name: "劃撥入帳查詢", fncId: "ZGD001" }
+                    ]}
+                ]
+            },
+            {
+                name: "出納系統",
+                children: [
+                    { name: "繳費查詢", items: ["繳費證明單列印作業"] },
+                    { name: "印領清冊", items: ["印領清冊造冊作業"] }
+                ]
+            },
+            {
+                name: "人事系統",
+                children: [
+                    { name: "填寫新表單", items: [] },
+                    { name: "系統公告", items: [] },
+                    { name: "差勤查詢", items: [
+                        "刷卡記錄查詢作業",
+                        { name: "一級主管出勤查詢", teacherOnly: true },
+                        { name: "全校員工出勤查詢", teacherOnly: true },
+                        { name: "主管查詢單位同仁刷卡記錄", teacherOnly: true },
+                        { name: "主管查詢單位同仁請假記錄", teacherOnly: true }
+                    ]},
+                    { name: "待辦作業", items: [
+                        "教師升等推薦作業",
+                        { name: "簽核作業(0)", fncId: "0A000" }
+                    ]}
+                ]
+            },
+            {
+                name: "研討會系統",
+                children: [
+                    { name: "研討會報名管理", items: ["活動公告訊息檢視", "活動資訊查詢及報名", "活動報名修改取消及查詢"] }
+                ]
+            },
+            {
+                name: "總務系統",
+                children: [
+                    { name: "器材借用管理", items: ["體育器材借用申請作業"] },
+                    { name: "財產管理", items: ["財物查詢", "財產增加作業", "財物移轉作業", "財產減損作業"] },
+                    { name: "修繕系統", items: ["報修申請及查詢作業"] },
+                    { name: "公務車管理系統", items: ["公務車管理系統(測試中)"] },
+                    { name: "場地借用管理", items: [
+                        "03.繳費單查詢列印作業", "04.場地使用狀況表", "05.場地使用一覽表",
+                        "01.場地借用申請(取消)作業", "02.場地借用簽核作業"
+                    ]},
+                    { name: "消耗品管理系統", items: ["消耗品請領作業"] },
+                    { name: "簽核作業系統", items: [
+                        { name: "簽核作業", fncId: "SIGN001" },
+                        { name: "歷史簽核查詢", fncId: "0A003" },
+                        "代理人作業",
+                        { name: "電子表單簽核作業", fncId: "0F001" }
+                    ]},
+                    { name: "電子表單", items: ["臨時停車證申請", "計中財物借用表單", "計中場地借用單", "計中財物歸還單", "查詢作業"] }
+                ]
+            },
+            {
+                name: "助理約(進)用管理系統",
+                children: [
+                    { name: "登錄", items: [
+                        "計畫登錄作業",
+                        { name: "計畫助理約(進)用登錄作業", fncId: "UAA002" },
+                        { name: "應聘人員確認作業", fncId: "UAA002_1" }
+                    ]}
+                ]
+            },
+            {
+                name: "投票與滿意度調查系統",
+                children: [
+                    { name: "投票與滿意度", items: ["餐廳滿意度填寫作業", "票選活動報名作業", "投票作業"] }
+                ]
+            }
+        ];
+
+        // 學生我的最愛統計
+        const studentFavorites = {
+            '0A000': { name: '一般線上加退選', count: 520 },
+            'AG222': { name: '我的課表', count: 485 },
+            'AG102': { name: '學生歷年成績查詢', count: 456 },
+            '00B04': { name: '學分學程加退選', count: 312 },
+            '00B01': { name: '師培學程課程加退選', count: 287 },
+            'AG304': { name: '系所班級課表查詢', count: 245 },
+            'AG650': { name: '畢業審核結果查詢', count: 198 },
+            'ZGC204': { name: '繳費單列印作業', count: 187 },
+            'AG225': { name: '在學證明', count: 165 },
+            'AK002': { name: '學生個人缺曠請假明細表', count: 143 },
+            '00B02': { name: '雙主修課程加退選', count: 132 },
+            '00B03': { name: '輔系課程加退選', count: 125 },
+            'AG305': { name: '期中預警查詢', count: 118 },
+            '00B05': { name: '師培學程課程預選', count: 98 },
+            'AG203': { name: '科目與教師開課資料查詢', count: 87 }
+        };
+
+        // 職員我的最愛統計
+        const staffFavorites = {
+            '0A000': { name: '簽核作業', count: 436 },
+            'KP2A2': { name: '學期成績輸入作業', count: 341 },
+            '0A003': { name: '歷史簽核查詢', count: 328 },
+            'AG304': { name: '系所班級課表查詢', count: 234 },
+            'ZZP800': { name: '報表查詢列印作業', count: 232 },
+            '0F001': { name: '電子表單簽核作業', count: 221 },
+            'AG203': { name: '科目與教師開課資料查詢', count: 202 },
+            'ZGC204': { name: '繳費單列印作業', count: 199 },
+            'ZGB204': { name: '薪資所得查詢作業', count: 119 },
+            'ZGC205': { name: '扣繳憑單查詢', count: 117 },
+            'AG650': { name: '畢業資格預審表查詢', count: 105 },
+            'UAA002_1': { name: '應聘人員確認作業', count: 97 },
+            'ZGD001': { name: '劃撥入帳查詢', count: 96 },
+            'AG300': { name: '教師課表查詢', count: 92 },
+            'AG302': { name: '教室課表查詢', count: 87 }
+        };
+
+        // 教師我的最愛統計（職員統計 + 教師特有高頻功能）
+        const teacherFavorites = {
+            'KP2A2': { name: '學期成績輸入作業', count: 520 },
+            'KPCG1': { name: '課程大綱輸入作業', count: 485 },
+            'DNAME': { name: '授課老師網路點名作業', count: 412 },
+            '0A000': { name: '簽核作業', count: 380 },
+            'TUTOR1': { name: '導師個別輔導紀錄登錄', count: 298 },
+            'TUTOR2': { name: '導師操行成績登錄作業', count: 267 },
+            '0A003': { name: '歷史簽核查詢', count: 245 },
+            'AG304': { name: '系所班級課表查詢', count: 234 },
+            '0F001': { name: '電子表單簽核作業', count: 198 },
+            'ZGB204': { name: '薪資所得查詢作業', count: 156 },
+            'ZGC205': { name: '扣繳憑單查詢', count: 134 },
+            'AG300': { name: '教師課表查詢', count: 128 },
+            'TUTOR3': { name: '導師團體輔導登錄作業', count: 112 },
+            'ZGD001': { name: '劃撥入帳查詢', count: 98 },
+            'EVAL': { name: '教學評量結果查詢', count: 87 }
+        };
+
+        // 獲取使用量等級
+        function getUsageLevel(count) {
+            if (count >= 300) return { class: 'usage-hot', label: '🔥 熱門' };
+            if (count >= 150) return { class: 'usage-warm', label: '⭐ 常用' };
+            if (count >= 80) return { class: 'usage-normal', label: '📌 收藏' };
+            return null;
+        }
+
+        // 切換身分
+        function switchRole(role) {
+            currentRole = role;
+
+            // Update buttons
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.role-btn.${role}`).classList.add('active');
+
+            // Update current role display
+            const roleDisplay = document.getElementById('currentRole');
+            const roleIcon = document.getElementById('roleIcon');
+            const roleName = document.getElementById('roleName');
+
+            roleDisplay.className = 'current-role ' + role;
+            if (role === 'student') {
+                roleIcon.textContent = '🎓';
+                roleName.textContent = '學生 OOO (U1110****)';
+            } else if (role === 'staff') {
+                roleIcon.textContent = '👔';
+                roleName.textContent = '職員 OOO';
+            } else {
+                roleIcon.textContent = '👨‍🏫';
+                roleName.textContent = '教師 OOO（含導師、主管權限）';
+            }
+
+            // Re-render content
+            renderMenu();
+            renderContent();
+        }
+
+        // 切換分頁
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('previewView').style.display = 'none';
+            document.getElementById('comparisonView').classList.remove('active');
+            document.getElementById('teacherDiffView').classList.remove('active');
+            document.getElementById('statsView').classList.remove('active');
+
+            if (tabName === 'preview') {
+                document.getElementById('previewView').style.display = 'flex';
+            } else if (tabName === 'comparison') {
+                document.getElementById('comparisonView').classList.add('active');
+            } else if (tabName === 'teacher-diff') {
+                document.getElementById('teacherDiffView').classList.add('active');
+            } else if (tabName === 'stats') {
+                document.getElementById('statsView').classList.add('active');
+            }
+        }
+
+        // 渲染選單
+        function renderMenu() {
+            const sidebar = document.getElementById('menuSidebar');
+            let menuStructure;
+            let favorites;
+
+            if (currentRole === 'student') {
+                menuStructure = studentMenuStructure;
+                favorites = studentFavorites;
+            } else if (currentRole === 'staff') {
+                menuStructure = staffMenuStructure;
+                favorites = staffFavorites;
+            } else {
+                menuStructure = teacherMenuStructure;
+                favorites = teacherFavorites;
+            }
+
+            let html = '';
+
+            menuStructure.forEach((level1, idx1) => {
+                const isTeacherOnlyL1 = level1.teacherOnly && currentRole === 'teacher';
+                html += `
+                    <div class="menu-level1">
+                        <div class="menu-level1-header ${currentRole}" onclick="toggleLevel1(this)">
+                            <span>${level1.name}${isTeacherOnlyL1 ? ' <span class="badge-teacher-only">教師專屬</span>' : ''}</span>
+                            <span class="arrow">▶</span>
+                        </div>
+                        <div class="menu-level1-content">
+                `;
+
+                level1.children.forEach((level2, idx2) => {
+                    const hasItems = level2.items && level2.items.length > 0;
+                    const isTeacherOnlyL2 = level2.teacherOnly && currentRole === 'teacher';
+                    html += `
+                        <div class="menu-level2">
+                            <div class="menu-level2-header" ${hasItems ? 'onclick="toggleLevel2(this)"' : ''}>
+                                <span>${level2.name}${isTeacherOnlyL2 ? ' <span class="badge-teacher-only">教師專屬</span>' : ''}</span>
+                                ${hasItems ? '<span class="arrow">▶</span>' : ''}
+                            </div>
+                            ${hasItems ? `
+                                <div class="menu-level2-content">
+                                    ${level2.items.map(item => {
+                                        const itemName = typeof item === 'string' ? item : item.name;
+                                        const fncId = typeof item === 'object' ? item.fncId : null;
+                                        const isTeacherOnly = typeof item === 'object' && item.teacherOnly;
+                                        const isTeacherDefault = typeof item === 'object' && item.teacherDefault;
+                                        const favData = fncId ? favorites[fncId] : null;
+                                        const usageLevel = favData ? getUsageLevel(favData.count) : null;
+
+                                        return `
+                                            <div class="menu-item">
+                                                <span>
+                                                    ${itemName}
+                                                    ${isTeacherOnly ? '<span class="badge-teacher-only">教師</span>' : ''}
+                                                    ${isTeacherDefault ? '<span class="badge-teacher-only">預設</span>' : ''}
+                                                </span>
+                                                ${usageLevel ? `<span class="${usageLevel.class}">${usageLevel.label} (${favData.count})</span>` : ''}
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            sidebar.innerHTML = html;
+        }
+
+        // 展開/收合 Level 1
+        function toggleLevel1(header) {
+            header.classList.toggle('expanded');
+            const content = header.nextElementSibling;
+            content.classList.toggle('expanded');
+        }
+
+        // 展開/收合 Level 2
+        function toggleLevel2(header) {
+            header.classList.toggle('expanded');
+            const content = header.nextElementSibling;
+            if (content) content.classList.toggle('expanded');
+        }
+
+        // 渲染內容區
+        function renderContent() {
+            const titleIcon = document.getElementById('titleIcon');
+            const titleText = document.getElementById('titleText');
+            const statsHeader = document.getElementById('statsHeader');
+
+            let menuStructure, favorites;
+
+            if (currentRole === 'student') {
+                menuStructure = studentMenuStructure;
+                favorites = studentFavorites;
+            } else if (currentRole === 'staff') {
+                menuStructure = staffMenuStructure;
+                favorites = staffFavorites;
+            } else {
+                menuStructure = teacherMenuStructure;
+                favorites = teacherFavorites;
+            }
+
+            // Update title
+            if (currentRole === 'student') {
+                titleIcon.textContent = '🎓';
+                titleText.textContent = '學生選單結構';
+                statsHeader.className = 'stats-section student';
+                document.getElementById('statCategories').textContent = '13';
+                document.getElementById('statSubcategories').textContent = '25';
+                document.getElementById('statFunctions').textContent = '85';
+            } else if (currentRole === 'staff') {
+                titleIcon.textContent = '👔';
+                titleText.textContent = '職員選單結構';
+                statsHeader.className = 'stats-section staff';
+                document.getElementById('statCategories').textContent = '17';
+                document.getElementById('statSubcategories').textContent = '30';
+                document.getElementById('statFunctions').textContent = '75';
+            } else {
+                titleIcon.textContent = '👨‍🏫';
+                titleText.textContent = '教師選單結構（含導師/主管功能）';
+                statsHeader.className = 'stats-section teacher';
+                document.getElementById('statCategories').textContent = '17';
+                document.getElementById('statSubcategories').textContent = '32';
+                document.getElementById('statFunctions').textContent = '95';
+            }
+
+            // Render quick actions
+            renderQuickActions(favorites);
+
+            // Render top functions list
+            renderTopFunctions(favorites);
+
+            // Render info box
+            renderInfoBox();
+        }
+
+        // 渲染快速功能
+        function renderQuickActions(favorites) {
+            const grid = document.getElementById('quickActionsGrid');
+            const sortedFuncs = Object.entries(favorites)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 8);
+
+            const icons = ['📋', '📊', '📝', '📚', '✏️', '📅', '💰', '🖨️'];
+
+            grid.innerHTML = sortedFuncs.map(([id, data], idx) => `
+                <div class="action-card ${currentRole}">
+                    <div class="rank-badge">${idx + 1}</div>
+                    <div class="icon">${icons[idx] || '📄'}</div>
+                    <h4>${data.name.length > 10 ? data.name.substring(0, 10) + '...' : data.name}</h4>
+                    <p>⭐ ${data.count} 人收藏</p>
+                </div>
+            `).join('');
+        }
+
+        // 渲染排行榜
+        function renderTopFunctions(favorites) {
+            const list = document.getElementById('topFunctionsList');
+            const sortedFuncs = Object.entries(favorites)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 10);
+
+            const maxCount = sortedFuncs[0][1].count;
+
+            list.innerHTML = sortedFuncs.map(([id, data], idx) => {
+                let rankClass = 'normal';
+                if (idx === 0) rankClass = 'gold';
+                else if (idx === 1) rankClass = 'silver';
+                else if (idx === 2) rankClass = 'bronze';
+
+                const barWidth = (data.count / maxCount) * 100;
+
+                return `
+                    <div class="function-row">
+                        <div class="function-rank ${rankClass}">${idx + 1}</div>
+                        <div class="function-name">${data.name}</div>
+                        <div class="function-count">${data.count} 人</div>
+                        <div class="function-bar">
+                            <div class="function-bar-fill ${currentRole}" style="width: ${barWidth}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染說明區
+        function renderInfoBox() {
+            const infoList = document.getElementById('infoList');
+
+            if (currentRole === 'student') {
+                infoList.innerHTML = `
+                    <li><strong>學生專屬功能：</strong>學生EP（學習歷程）、選課作業</li>
+                    <li><strong>最常用功能：</strong>選課加退選、我的課表、成績查詢</li>
+                    <li><strong>選單層級：</strong>3 層結構（模組→子類別→功能）</li>
+                    <li><strong>功能權限：</strong>資料庫 98 個 fnc_id（sts_id = '02'）</li>
+                    <li><strong>建議改善：</strong>選課相關功能應整合到首頁快捷區</li>
+                `;
+            } else if (currentRole === 'staff') {
+                infoList.innerHTML = `
+                    <li><strong>職員專屬功能：</strong>簽核中心、教師評鑑、人事系統</li>
+                    <li><strong>最常用功能：</strong>簽核作業、成績登錄、薪資查詢</li>
+                    <li><strong>選單層級：</strong>3 層結構（模組→子類別→功能）</li>
+                    <li><strong>功能權限：</strong>資料庫 77 個 fnc_id（sts_id = '01'）</li>
+                    <li><strong>建議改善：</strong>簽核相關功能應統一入口，減少尋找時間</li>
+                `;
+            } else {
+                infoList.innerHTML = `
+                    <li><strong>教師選單特色：</strong>職員功能 + 授課教師(1A) + 導師(1B) + 主管權限</li>
+                    <li><strong>最常用功能：</strong>成績登錄、課程大綱、點名作業、導師輔導</li>
+                    <li><strong>教師專屬：</strong>約 20 項額外功能（班級管理、導師輔導、主管查詢）</li>
+                    <li><strong>我的最愛：</strong>預設 6 項常用功能（職員版為空白）</li>
+                    <li><strong>建議改善：</strong>教師儀表板應突顯成績登錄、點名、導師功能</li>
+                `;
+            }
+        }
+
+        // 渲染對照表
+        function renderComparisonTable() {
+            const tbody = document.getElementById('comparisonBody');
+            const comparisons = [
+                { category: '我的最愛', student: '✅', staff: '空白', teacher: '6項預設', note: '教師有預設最愛' },
+                { category: '學生EP (學習歷程)', student: '✅', staff: '❌', teacher: '❌', note: '學生專屬' },
+                { category: '選課作業', student: '✅', staff: '❌', teacher: '❌', note: '學生專屬' },
+                { category: '系統公告與下載', student: '✅', staff: '✅', teacher: '✅', note: '三者共用' },
+                { category: '訊息平台', student: '❌', staff: '✅', teacher: '✅', note: '教職員共用' },
+                { category: '查詢 > 教務資訊', student: '12項', staff: '11項', teacher: '14項', note: '教師多班級查詢' },
+                { category: '查詢 > 學務資訊', student: '7項', staff: '❌', teacher: '導師功能', note: '學生/教師不同' },
+                { category: '登錄 > 教務資訊', student: '7項', staff: '3項', teacher: '4項', note: '教師多預警功能' },
+                { category: '登錄 > 學務登錄', student: '6項', staff: '2項', teacher: '7項', note: '教師多導師/點名' },
+                { category: '教師e-Portfolio', student: '❌', staff: '✅', teacher: '✅', note: '教職員共用' },
+                { category: '教師評鑑系統', student: '❌', staff: '✅', teacher: '✅', note: '教職員共用' },
+                { category: '薪資系統', student: '1項', staff: '5項', teacher: '5項', note: '職員/教師相同' },
+                { category: '人事 > 差勤查詢', student: '❌', staff: '1項', teacher: '5項', note: '教師多主管功能' },
+                { category: '總務系統', student: '1項', staff: '25項', teacher: '25項', note: '職員/教師相同' },
+                { category: '投票與滿意度', student: '✅', staff: '✅', teacher: '✅', note: '三者共用' }
+            ];
+
+            tbody.innerHTML = comparisons.map(c => `
+                <tr>
+                    <td><strong>${c.category}</strong></td>
+                    <td>${c.student.includes('✅') ? `<span class="badge-student">${c.student}</span>` : c.student}</td>
+                    <td>${c.staff.includes('✅') ? `<span class="badge-staff">${c.staff}</span>` : c.staff}</td>
+                    <td>${c.teacher.includes('✅') ? `<span class="badge-teacher">${c.teacher}</span>` :
+                         c.teacher.includes('項') || c.teacher.includes('預設') || c.teacher.includes('功能') ?
+                         `<span class="badge-teacher">${c.teacher}</span>` : c.teacher}</td>
+                    <td>${c.note}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 渲染統計視圖
+        function renderStatsView() {
+            // Student top list
+            const studentList = document.getElementById('studentTopList');
+            const studentSorted = Object.entries(studentFavorites)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 5);
+
+            studentList.innerHTML = studentSorted.map(([id, data], idx) => `
+                <div class="role-stat-row">
+                    <span>${idx + 1}. ${data.name}</span>
+                    <span><strong>${data.count}</strong></span>
+                </div>
+            `).join('');
+
+            // Staff top list
+            const staffList = document.getElementById('staffTopList');
+            const staffSorted = Object.entries(staffFavorites)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 5);
+
+            staffList.innerHTML = staffSorted.map(([id, data], idx) => `
+                <div class="role-stat-row">
+                    <span>${idx + 1}. ${data.name}</span>
+                    <span><strong>${data.count}</strong></span>
+                </div>
+            `).join('');
+
+            // Teacher top list
+            const teacherList = document.getElementById('teacherTopList');
+            const teacherSorted = Object.entries(teacherFavorites)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 5);
+
+            teacherList.innerHTML = teacherSorted.map(([id, data], idx) => `
+                <div class="role-stat-row">
+                    <span>${idx + 1}. ${data.name}</span>
+                    <span><strong>${data.count}</strong></span>
+                </div>
+            `).join('');
+
+            // Overall ranking (combined)
+            const overallList = document.getElementById('overallRankingList');
+            const allFavorites = { ...studentFavorites };
+
+            Object.entries(staffFavorites).forEach(([id, data]) => {
+                if (allFavorites[id]) {
+                    allFavorites[id].count = Math.max(allFavorites[id].count, data.count);
+                } else {
+                    allFavorites[id] = { ...data };
+                }
+            });
+
+            Object.entries(teacherFavorites).forEach(([id, data]) => {
+                if (allFavorites[id]) {
+                    allFavorites[id].count = Math.max(allFavorites[id].count, data.count);
+                } else {
+                    allFavorites[id] = { ...data };
+                }
+            });
+
+            const overallSorted = Object.entries(allFavorites)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 15);
+
+            const maxCount = overallSorted[0][1].count;
+
+            overallList.innerHTML = overallSorted.map(([id, data], idx) => {
+                let rankClass = 'normal';
+                if (idx === 0) rankClass = 'gold';
+                else if (idx === 1) rankClass = 'silver';
+                else if (idx === 2) rankClass = 'bronze';
+
+                const barWidth = (data.count / maxCount) * 100;
+                const isStudentFunc = studentFavorites[id] !== undefined;
+                const isStaffFunc = staffFavorites[id] !== undefined;
+                const isTeacherFunc = teacherFavorites[id] !== undefined;
+
+                let badge = '';
+                if (isStudentFunc && isStaffFunc && isTeacherFunc) {
+                    badge = '<span class="badge-shared">全部</span>';
+                } else if (isTeacherFunc && !isStudentFunc) {
+                    badge = '<span class="badge-teacher">教師</span>';
+                } else if (isStudentFunc && !isStaffFunc) {
+                    badge = '<span class="badge-student">學生</span>';
+                } else if (isStaffFunc) {
+                    badge = '<span class="badge-staff">職員</span>';
+                }
+
+                return `
+                    <div class="function-row">
+                        <div class="function-rank ${rankClass}">${idx + 1}</div>
+                        <div class="function-name">
+                            ${data.name}
+                            ${badge}
+                        </div>
+                        <div class="function-count">${data.count}</div>
+                        <div class="function-bar">
+                            <div class="function-bar-fill student" style="width: ${barWidth}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 初始化
+        function init() {
+            renderMenu();
+            renderContent();
+            renderComparisonTable();
+            renderStatsView();
+        }
+
+        // 頁面載入時執行
+        init();
+    </script>
+</body>
+</html>
