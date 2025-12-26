@@ -768,6 +768,329 @@
         .hidden {
             display: none !important;
         }
+
+        /* ========================================
+           RWD 響應式設計
+           ======================================== */
+
+        /* CSS 變數 */
+        :root {
+            --sidebar-width: 320px;
+            --sidebar-width-tablet: 280px;
+            --sidebar-width-mobile: 280px;
+        }
+
+        /* 漢堡選單按鈕 */
+        .hamburger-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 32px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 12px;
+        }
+
+        .hamburger-line {
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* 側邊欄遮罩 */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* 側邊欄關閉按鈕 */
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            line-height: 32px;
+            text-align: center;
+        }
+
+        .sidebar-close:hover {
+            background: #cbd5e0;
+        }
+
+        /* ===== 平板 (768px - 1023px) ===== */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .sidebar {
+                width: var(--sidebar-width-tablet);
+            }
+
+            .content-area {
+                padding: 24px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .stat-item .number {
+                font-size: 24px;
+            }
+
+            .role-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* ===== 手機 (< 768px) ===== */
+        @media (max-width: 767px) {
+            /* 漢堡選單顯示 */
+            .hamburger-btn {
+                display: flex;
+            }
+
+            .sidebar-close {
+                display: block;
+            }
+
+            /* Header 重構 */
+            .header {
+                flex-wrap: wrap;
+                padding: 12px 16px;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+                flex: 1;
+                min-width: 0;
+                order: 1;
+            }
+
+            .header-controls {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+                order: 2;
+            }
+
+            .role-toggle {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .role-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .current-role {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            /* Tabs 水平滾動 */
+            .tabs {
+                padding: 0 12px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .tab {
+                padding: 12px 14px;
+                font-size: 13px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* 側邊欄抽屜 */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: calc(-1 * var(--sidebar-width-mobile));
+                width: var(--sidebar-width-mobile);
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                padding-top: 50px;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            /* 主容器 */
+            .main-container {
+                flex-direction: column;
+            }
+
+            .content-area {
+                width: 100%;
+                padding: 16px;
+                height: auto;
+                min-height: calc(100vh - 180px);
+            }
+
+            /* 統計網格 2x2 */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .stat-item .number {
+                font-size: 22px;
+            }
+
+            .stat-item .label {
+                font-size: 11px;
+            }
+
+            /* 角色卡片單欄 */
+            .role-summary {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .role-card {
+                padding: 16px;
+            }
+
+            /* 快速操作 2 欄 */
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .action-card {
+                padding: 16px;
+            }
+
+            .action-card .icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .action-card h4 {
+                font-size: 12px;
+            }
+
+            .action-card p {
+                font-size: 10px;
+            }
+
+            /* 表格水平滾動 */
+            .comparison-view {
+                padding: 16px;
+                overflow-x: auto;
+            }
+
+            .comparison-table {
+                min-width: 600px;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 8px 10px;
+                font-size: 11px;
+            }
+
+            /* Top Functions */
+            .top-functions {
+                padding: 16px;
+            }
+
+            .function-row {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .function-name {
+                flex-basis: 60%;
+            }
+
+            /* Info Box */
+            .info-box {
+                padding: 12px;
+            }
+
+            /* 教師專屬功能 */
+            .teacher-extra-section {
+                padding: 16px;
+            }
+
+            .teacher-extra-box {
+                padding: 16px;
+            }
+        }
+
+        /* ===== 極小螢幕 (< 480px) ===== */
+        @media (max-width: 479px) {
+            .header h1 {
+                font-size: 16px;
+            }
+
+            .current-role {
+                display: none;
+            }
+
+            .tab {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .stat-item .number {
+                font-size: 20px;
+            }
+
+            .stats-section h3 {
+                font-size: 14px;
+            }
+
+            .action-card {
+                padding: 12px;
+            }
+
+            .action-card h4 {
+                font-size: 11px;
+            }
+
+            .role-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -776,7 +1099,16 @@
         <span>計中展示版</span>
     </div>
 
+    <!-- 側邊欄遮罩 (RWD) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <div class="header">
+        <!-- 漢堡選單按鈕 (RWD) -->
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="開啟選單">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
         <h1>臺北市立大學 校務系統</h1>
         <div class="header-controls">
             <div class="role-toggle">
@@ -801,6 +1133,8 @@
     <!-- Preview View -->
     <div class="main-container" id="previewView">
         <div class="sidebar" id="menuSidebar">
+            <!-- 關閉按鈕 (RWD) -->
+            <button class="sidebar-close" id="sidebarClose" aria-label="關閉選單">&times;</button>
             <!-- Menu will be rendered here -->
         </div>
         <div class="content-area">
@@ -2046,6 +2380,51 @@
 
         // 頁面載入時執行
         init();
+
+        // ========================================
+        // RWD 響應式控制 - 漢堡選單
+        // ========================================
+        (function initHamburgerMenu() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebar = document.getElementById('menuSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const closeBtn = document.getElementById('sidebarClose');
+
+            if (!hamburgerBtn || !sidebar || !overlay) return;
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', openSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+
+            // 點擊選單項目後自動關閉 (手機)
+            sidebar.addEventListener('click', (e) => {
+                if (e.target.classList.contains('menu-item') ||
+                    e.target.closest('.menu-item')) {
+                    if (window.innerWidth < 768) {
+                        closeSidebar();
+                    }
+                }
+            });
+
+            // 視窗大小改變時重置狀態
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    closeSidebar();
+                }
+            });
+        })();
     </script>
 </body>
 </html>
